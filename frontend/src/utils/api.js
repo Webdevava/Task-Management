@@ -1,5 +1,6 @@
 // api.js
-const API_URL = "http://localhost:8000/api/tasks";
+const API_URL =
+  "https://task-manager-ava-backend-fnp9aakxn-webdevavas-projects.vercel.app/api/tasks";
 
 export const fetchTasks = async () => {
   const response = await fetch(API_URL);
