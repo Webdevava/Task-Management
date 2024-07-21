@@ -1,4 +1,4 @@
-const API_URL = "https://task-manager-ava-backend-lfsz1vvyt-webdevavas-projects.vercel.app/api/tasks";
+const API_URL = "https://task-management-woad-alpha.vercel.app/api/tasks";
 
 export const fetchTasks = async () => {
   try {
