@@ -11,7 +11,7 @@ app = FastAPI()
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"], 
+    allow_origins=["https://task-management-ava.vercel.app"], 
     allow_credentials=True,
     allow_methods=["*"],  # Allow all methods, or specify if needed
     allow_headers=["*"],
