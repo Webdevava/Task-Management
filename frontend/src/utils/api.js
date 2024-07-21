@@ -1,13 +1,17 @@
-// api.js
-const API_URL =
-  "https://task-manager-ava-backend-fnp9aakxn-webdevavas-projects.vercel.app/api/tasks";
+const API_URL = "https://task-manager-ava-backend-lfsz1vvyt-webdevavas-projects.vercel.app/api/tasks";
 
 export const fetchTasks = async () => {
-  const response = await fetch(API_URL);
-  if (!response.ok) {
-    throw new Error("Failed to fetch tasks");
+  try {
+    const response = await fetch(API_URL);
+    console.log('Fetch Tasks Response:', response);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch tasks: ${response.statusText}`);
+    }
+    return response.json();
+  } catch (error) {
+    console.error("Error fetching tasks:", error);
+    throw error;
   }
-  return response.json();
 };
 
 export const createTask = async (task) => {
@@ -19,30 +23,35 @@ export const createTask = async (task) => {
       },
       body: JSON.stringify(task),
     });
+    console.log('Create Task Response:', response);
     if (!response.ok) {
-      throw new Error("Failed to create task");
+      throw new Error(`Failed to create task: ${response.statusText}`);
     }
     return await response.json();
   } catch (error) {
     console.error("Error creating task:", error);
-    throw error; // Rethrow to be caught in the caller
+    throw error;
   }
 };
 
-
-
 export const updateTask = async (id, taskUpdate) => {
-  const response = await fetch(`${API_URL}/${id}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(taskUpdate),
-  });
-  if (!response.ok) {
-    throw new Error("Failed to update task");
+  try {
+    const response = await fetch(`${API_URL}/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(taskUpdate),
+    });
+    console.log('Update Task Response:', response);
+    if (!response.ok) {
+      throw new Error(`Failed to update task: ${response.statusText}`);
+    }
+    return response.json();
+  } catch (error) {
+    console.error("Error updating task:", error);
+    throw error;
   }
-  return response.json();
 };
 
 export const deleteTask = async (id) => {
@@ -50,13 +59,13 @@ export const deleteTask = async (id) => {
     const response = await fetch(`${API_URL}/${id}`, {
       method: "DELETE",
     });
+    console.log('Delete Task Response:', response);
     if (!response.ok) {
-      throw new Error("Failed to delete task");
+      throw new Error(`Failed to delete task: ${response.statusText}`);
     }
-    return response.json(); // Assuming the server responds with JSON
+    return response.json();
   } catch (error) {
     console.error("Error deleting task:", error);
-    throw error; // Optionally rethrow to handle higher up
+    throw error;
   }
 };
-
