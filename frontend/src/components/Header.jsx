@@ -1,6 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
+import { useRouter } from "next/router";
 
 const Header = () => {
+  const [currentRoute, setCurrentRoute] = useState("/");
+  const router = useRouter();
+  
   const now = new Date();
 
   const getGreeting = () => {
@@ -42,6 +46,12 @@ const Header = () => {
     }).format(date);
   };
 
+  const toggleRoute = () => {
+    const newRoute = currentRoute === "/" ? "/kanban" : "/";
+    setCurrentRoute(newRoute);
+    router.push(newRoute);
+  };
+
   return (
     <div className="mb-6">
       <h1 className="text-xl font-medium text-white">{getGreeting()}</h1>
@@ -51,6 +61,12 @@ const Header = () => {
       <p className="text-zinc-500 mt-2">
         {formatDate(now)} | {formatTime(now)}
       </p>
+      <button
+        onClick={toggleRoute}
+        className="mt-4 p-2 bg-blue-500 text-white rounded"
+      >
+        Switch to {currentRoute === "/" ? "/kanban" : "/"}
+      </button>
     </div>
   );
 };
