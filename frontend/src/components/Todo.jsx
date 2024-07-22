@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, useAnimate, usePresence } from "framer-motion";
 import { FiClock, FiTrash2 } from "react-icons/fi";
 
@@ -14,6 +14,7 @@ const Todo = ({
 }) => {
   const [isPresent, safeToRemove] = usePresence();
   const [scope, animate] = useAnimate();
+  const [loading, setLoading] = useState(false); // Add loading state
 
   useEffect(() => {
     if (!isPresent) {
@@ -71,8 +72,26 @@ const Todo = ({
     );
   }, [status, title, description]);
 
-  const handleStatusChange = (e) => {
-    handleCheck(id, e.target.value);
+  const handleStatusChange = async (e) => {
+    setLoading(true); // Set loading state to true
+    try {
+      await handleCheck(id, e.target.value); // Await handleCheck
+    } catch (error) {
+      console.error("Error changing status:", error);
+    } finally {
+      setLoading(false); // Set loading state to false
+    }
+  };
+
+  const handleRemove = async () => {
+    setLoading(true); // Set loading state to true
+    try {
+      await removeElement(id); // Await removeElement
+    } catch (error) {
+      console.error("Error removing task:", error);
+    } finally {
+      setLoading(false); // Set loading state to false
+    }
   };
 
   const timeAgo = (date) => {
@@ -106,40 +125,53 @@ const Todo = ({
           : "border-zinc-700"
       }`}
     >
-      <div className="flex flex-col">
-        <h3
-          className={`text-white font-bold ${
-            status === "done" ? "line-through text-zinc-400" : ""
-          }`}
-        >
-          {title}
-              </h3>
-        <p
-          className={`text-sm text-zinc-400 ${
-            status === "done" ? "line-through text-zinc-500" : ""
-          }`}
-        >
-          {description}
-        </p>
-        <p className="text-xs mt-2 text-zinc-500">{timeAgo(created_at)}</p>
-      </div>
-      <motion.div
-        layout
-        className=" flex flex-col items-end gap-2 text-sm text-zinc-400"
-      >
-        <select
-          value={status}
-          onChange={handleStatusChange}
-          className="rounded bg-zinc-800 text-sm text-zinc-50 focus:outline-0"
-        >
-          <option value="todo">Todo</option>
-          <option value="in_progress">In Progress</option>
-          <option value="done">Done</option>
-        </select>
-        <button onClick={() => removeElement(id)} className="p-1 text-lg">
-          <FiTrash2 className="text-red-500" />
-        </button>
-      </motion.div>
+      {loading ? (
+        <div className="flex items-center justify-center h-full w-full">
+          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-400"></div>
+        </div>
+      ) : (
+        <>
+          <div className="flex flex-col">
+            <h3
+              className={`text-white font-bold ${
+                status === "done" ? "line-through text-zinc-400" : ""
+              }`}
+            >
+              {title}
+            </h3>
+            <p
+              className={`text-sm text-zinc-400 ${
+                status === "done" ? "line-through text-zinc-500" : ""
+              }`}
+            >
+              {description}
+            </p>
+            <p className="text-xs mt-2 text-zinc-500">{timeAgo(created_at)}</p>
+          </div>
+          <motion.div
+            layout
+            className="flex flex-col items-end gap-2 text-sm text-zinc-400"
+          >
+            <select
+              value={status}
+              onChange={handleStatusChange}
+              className="rounded bg-zinc-800 text-sm text-zinc-50 focus:outline-0"
+              disabled={loading} // Disable select when loading
+            >
+              <option value="todo">Todo</option>
+              <option value="in_progress">In Progress</option>
+              <option value="done">Done</option>
+            </select>
+            <button
+              onClick={handleRemove}
+              className="p-1 text-lg"
+              disabled={loading} // Disable button when loading
+            >
+              <FiTrash2 className="text-red-500" />
+            </button>
+          </motion.div>
+        </>
+      )}
     </motion.div>
   );
 };
