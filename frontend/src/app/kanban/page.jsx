@@ -227,11 +227,11 @@ const DraggableItem = ({ id, children, status }) => {
   const getBorderColor = () => {
     switch (status) {
       case "todo":
-        return "border-l-4 border-l-gray-400";
+        return "border-l-4 border-l-gray-400 rounded-lg";
       case "in_progress":
-        return "border-l-4 border-l-blue-400";
+        return "border-l-4 border-l-blue-400 rounded-lg";
       case "done":
-        return "border-l-4 border-l-green-400";
+        return "border-l-4 border-l-green-400 rounded-lg";
       default:
         return "";
     }
