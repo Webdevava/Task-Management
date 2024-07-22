@@ -57,37 +57,48 @@ const VanishList = () => {
     updateTaskCounts(todos);
   }, [todos]);
 
-  const handleDragEnd = async (event) => {
-    const { active, over } = event;
+const handleDragEnd = async (event) => {
+  const { active, over } = event;
 
-    if (!over) return;
+  if (!over) return;
 
-    if (active.id === over.id) return;
+  if (active.id === over.id) return;
 
-    const task = todos.find((t) => t.id === active.id);
+  const task = todos.find((t) => t.id === active.id);
 
-    if (over.id === "delete") {
-      try {
-        await deleteTask(task.id);
-        setTodos((prevTodos) => prevTodos.filter((t) => t.id !== task.id));
-      } catch (error) {
-        console.error("Error deleting task:", error);
-      }
+  if (!task) return;
+
+  const originalStatus = task.status;
+  const newStatus = over.id;
+
+  // Optimistically update UI
+  setTodos((prevTodos) => {
+    const updatedTodos = prevTodos.filter((t) => t.id !== task.id);
+    const updatedTask = { ...task, status: newStatus };
+    return [...updatedTodos, updatedTask];
+  });
+
+  try {
+    // Perform backend operation
+    if (newStatus === "delete") {
+      await deleteTask(task.id);
     } else {
-      const updatedTask = { ...task, status: over.id };
-      try {
-        await updateTask(task.id, { status: updatedTask.status });
-        setTodos((prevTodos) => {
-          const updatedTodos = prevTodos.filter((t) => t.id !== task.id);
-          return [...updatedTodos, updatedTask];
-        });
-      } catch (error) {
-        console.error("Error updating task:", error);
-      }
+      await updateTask(task.id, { status: newStatus });
     }
+  } catch (error) {
+    console.error("Error processing task:", error);
 
+    // Rollback if backend operation fails
+    setTodos((prevTodos) => {
+      const updatedTodos = prevTodos.filter((t) => t.id !== task.id);
+      const revertedTask = { ...task, status: originalStatus };
+      return [...updatedTodos, revertedTask];
+    });
+  } finally {
     setActiveId(null);
-  };
+  }
+};
+
 
   const getColumnTasks = (status) =>
     todos.filter((task) => task.status === status);
