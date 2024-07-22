@@ -22,15 +22,23 @@ const VanishList = () => {
     done: 0,
   });
   const [activeId, setActiveId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const loadTasks = async () => {
+      setIsLoading(true);
+      setError(null);
       try {
         const tasks = await fetchTasks();
+        console.log("Fetched tasks:", tasks); // Debug log
         setTodos(tasks);
         updateTaskCounts(tasks);
       } catch (error) {
         console.error("Error fetching tasks:", error);
+        setError("Failed to load tasks. Please try again.");
+      } finally {
+        setIsLoading(false);
       }
     };
     loadTasks();
@@ -84,6 +92,8 @@ const VanishList = () => {
   const getColumnTasks = (status) =>
     todos.filter((task) => task.status === status);
 
+  console.log("Current state:", { isLoading, error, todos, taskCounts }); // Debug log
+
   return (
     <motion.section
       initial={{ opacity: 0 }}
@@ -96,54 +106,78 @@ const VanishList = () => {
     >
       <div className="mx-auto w-full max-w-7xl px-4">
         <Header />
-        <DndContext
-          onDragEnd={handleDragEnd}
-          onDragStart={(event) => setActiveId(event.active.id)}
-          collisionDetection={rectIntersection}
-        >
-          <motion.div className="flex flex-wrap gap-4" layout>
-            {statuses.map((status) => (
-              <DroppableContainer key={status} id={status}>
-                <h2 className="text-xl font-semibold text-zinc-50 mb-4 capitalize">
-                  {status.replace("_", " ")}
-                  {status !== "delete" && ` (${taskCounts[status] || 0})`}
-                </h2>
-                <AnimatePresence>
-                  {status !== "delete" &&
-                    getColumnTasks(status).map((task) => (
-                      <DraggableItem key={task.id} id={task.id}>
-                        <motion.div
-                          layout
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
-                          className="bg-zinc-700 p-4 rounded mb-2 cursor-move"
-                        >
-                          <h3 className="text-lg text-zinc-50">{task.title}</h3>
-                          <p className="text-sm text-zinc-400">
-                            {task.description}
-                          </p>
-                        </motion.div>
-                      </DraggableItem>
-                    ))}
-                </AnimatePresence>
-              </DroppableContainer>
-            ))}
+        {isLoading ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex justify-center items-center h-[60vh]"
+          >
+            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-zinc-500"></div>
           </motion.div>
-          <DragOverlay>
-            {activeId ? (
-              <motion.div
-                initial={{ opacity: 0.8, scale: 1.05 }}
-                animate={{ opacity: 1, scale: 1.1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.3 }}
-                className="bg-zinc-700 p-4 rounded shadow-lg"
-              >
-                {todos.find((task) => task.id === activeId)?.title}
-              </motion.div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+        ) : error ? (
+          <div className="text-red-500 text-center">{error}</div>
+        ) : (
+          <DndContext
+            onDragEnd={handleDragEnd}
+            onDragStart={(event) => setActiveId(event.active.id)}
+            collisionDetection={rectIntersection}
+          >
+            <motion.div
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+              layout
+            >
+              {statuses.map((status) => (
+                <DroppableContainer key={status} id={status}>
+                  <h2 className="text-xl font-semibold text-zinc-50 mb-4 capitalize">
+                    {status.replace("_", " ")}
+                    {status !== "delete" && ` (${taskCounts[status] || 0})`}
+                  </h2>
+                  <AnimatePresence>
+                    {status !== "delete" &&
+                      getColumnTasks(status).map((task) => (
+                        <DraggableItem
+                          key={task.id}
+                          id={task.id}
+                          status={task.status}
+                        >
+                          <motion.div
+                            layout
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="bg-zinc-800 p-4 rounded-lg mb-2 cursor-move shadow-md"
+                          >
+                            <h3 className="text-lg text-zinc-50 font-medium mb-2">
+                              {task.title}
+                            </h3>
+                            <p className="text-sm text-zinc-400">
+                              {task.description}
+                            </p>
+                          </motion.div>
+                        </DraggableItem>
+                      ))}
+                  </AnimatePresence>
+                </DroppableContainer>
+              ))}
+            </motion.div>
+            <DragOverlay>
+              {activeId ? (
+                <motion.div
+                  initial={{ opacity: 0.8, scale: 1.05 }}
+                  animate={{ opacity: 1, scale: 1.1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.3 }}
+                  className="bg-zinc-700 p-4 rounded-lg shadow-lg"
+                >
+                  <h3 className="text-lg text-zinc-50 font-medium">
+                    {todos.find((task) => task.id === activeId)?.title}
+                  </h3>
+                </motion.div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
+        )}
         <Form
           onCreateTask={async (task) => {
             try {
@@ -166,10 +200,10 @@ const DroppableContainer = ({ id, children }) => {
     <motion.div
       ref={setNodeRef}
       layout
-      className={`flex-1 min-w-[200px] p-4 rounded ${
+      className={`p-4 rounded-lg ${
         id === "delete"
-          ? "bg-red-800 text-white border-2 border-red-600"
-          : "bg-zinc-800"
+          ? "bg-red-800/20 border-2 border-red-600"
+          : "bg-zinc-900/65 border-2 border-zinc-600"
       }`}
       style={{ minHeight: "200px" }}
       initial={{ opacity: 0, scale: 0.9 }}
@@ -182,7 +216,7 @@ const DroppableContainer = ({ id, children }) => {
   );
 };
 
-const DraggableItem = ({ id, children }) => {
+const DraggableItem = ({ id, children, status }) => {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({ id });
   const style = transform
     ? {
@@ -190,13 +224,26 @@ const DraggableItem = ({ id, children }) => {
       }
     : undefined;
 
+  const getBorderColor = () => {
+    switch (status) {
+      case "todo":
+        return "border-l-4 border-l-gray-400";
+      case "in_progress":
+        return "border-l-4 border-l-blue-400";
+      case "done":
+        return "border-l-4 border-l-green-400";
+      default:
+        return "";
+    }
+  };
+
   return (
     <motion.div
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      className="cursor-move"
+      className={`cursor-move ${getBorderColor()}`}
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
