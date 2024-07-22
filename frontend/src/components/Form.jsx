@@ -9,6 +9,7 @@ const Form = ({ onCreateTask }) => {
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState("todo");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // Add loading state
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,6 +22,7 @@ const Form = ({ onCreateTask }) => {
       created_at: new Date().toISOString(),
     };
 
+    setLoading(true); // Start loading
     try {
       await onCreateTask(newTodo);
 
@@ -33,6 +35,8 @@ const Form = ({ onCreateTask }) => {
     } catch (error) {
       console.error("Error creating task:", error);
       setError("Failed to create task. Please try again.");
+    } finally {
+      setLoading(false); // End loading
     }
   };
 
@@ -76,9 +80,14 @@ const Form = ({ onCreateTask }) => {
               </div>
               <button
                 type="submit"
-                className="rounded bg-indigo-600 px-1.5 py-1 text-sm text-indigo-50 transition-colors hover:bg-indigo-500"
+                className="rounded bg-indigo-600 px-1.5 py-1 text-sm text-indigo-50 transition-colors hover:bg-indigo-500 flex items-center justify-center"
+                disabled={loading} // Disable button when loading
               >
-                Submit
+                {loading ? (
+                  <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-indigo-400"></div>
+                ) : (
+                  "Submit"
+                )}
               </button>
             </div>
             {error && <p className="text-red-500">{error}</p>}
