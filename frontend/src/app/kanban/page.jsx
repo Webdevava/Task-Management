@@ -254,7 +254,7 @@ const DraggableItem = ({ id, children, status }) => {
       style={style}
       {...attributes}
       {...listeners}
-      className={`cursor-move ${getBorderColor()}`}
+      className={`cursor-move ${getBorderColor()} rounded-l-none rounded-xl`}
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
