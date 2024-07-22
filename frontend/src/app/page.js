@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Form from "@/components/Form";
 import Todos from "@/components/Todos";
@@ -15,15 +15,19 @@ const VanishList = () => {
     in_progress: 0,
     done: 0,
   });
+   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadTasks = async () => {
+      setIsLoading(true);
       try {
         const tasks = await fetchTasks();
         setTodos(tasks);
         updateTaskCounts(tasks);
       } catch (error) {
         console.error("Error fetching tasks:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     loadTasks();
@@ -90,11 +94,22 @@ const VanishList = () => {
             <option value="done">Done ({taskCounts.done})</option>
           </select>
         </div>
-        <Todos
-          removeElement={removeElement}
-          todos={filteredTodos}
-          handleCheck={handleCheck}
-        />
+        {isLoading ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex justify-center items-center h-[60vh]"
+          >
+            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-zinc-500"></div>
+          </motion.div>
+        ) : (
+          <Todos
+            removeElement={removeElement}
+            todos={filteredTodos}
+            handleCheck={handleCheck}
+          />
+        )}
       </div>
       <Form
         onCreateTask={async (task) => {
