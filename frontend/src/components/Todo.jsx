@@ -119,10 +119,10 @@ const Todo = ({
       layout
       className={`relative flex w-full justify-between items-end gap-3 rounded border-l-4 bg-zinc-900 p-3 ${
         status === "done"
-          ? "border-green-500"
+          ? "border-green-400"
           : status === "in_progress"
-          ? "border-blue-700"
-          : "border-zinc-700"
+          ? "border-blue-400"
+          : "border-zinc-400"
       }`}
     >
       {loading ? (
